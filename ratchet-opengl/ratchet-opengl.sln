@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTriangle", "Samples\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleTexture", "SimpleTexture\SimpleTexture.csproj", "{10C01B8B-65FC-4056-81FC-49BAC4A2349D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleCube", "Samples\SimpleCube\SimpleCube.csproj", "{58295309-28ED-4EEB-94D8-FC8E382426BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{10C01B8B-65FC-4056-81FC-49BAC4A2349D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10C01B8B-65FC-4056-81FC-49BAC4A2349D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10C01B8B-65FC-4056-81FC-49BAC4A2349D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58295309-28ED-4EEB-94D8-FC8E382426BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58295309-28ED-4EEB-94D8-FC8E382426BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58295309-28ED-4EEB-94D8-FC8E382426BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58295309-28ED-4EEB-94D8-FC8E382426BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -36,6 +42,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{0DB88F82-30D4-4176-B94C-47E8B61D41A8} = {D21D4EB7-28D1-46AF-9F05-40260B19C1BD}
 		{10C01B8B-65FC-4056-81FC-49BAC4A2349D} = {D21D4EB7-28D1-46AF-9F05-40260B19C1BD}
+		{58295309-28ED-4EEB-94D8-FC8E382426BE} = {D21D4EB7-28D1-46AF-9F05-40260B19C1BD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A9EEAAFA-C805-4B97-BBCE-4E64D7A5BB06}

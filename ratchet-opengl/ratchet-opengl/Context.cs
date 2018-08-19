@@ -16,7 +16,8 @@ namespace Ratchet.Drawing.OpenGL
 
         delegate void glEnableFunc(int cap);
         glEnableFunc _glEnable;
-
+        delegate void glDisableFunc(int cap);
+        glDisableFunc _glDisable;
 
         delegate byte* glGetStringFunc(int glEnum);
         glGetStringFunc glGetString;
@@ -45,8 +46,14 @@ namespace Ratchet.Drawing.OpenGL
         delegate void glClearFunc(uint Target);
         glClearFunc _glClear;
 
+        delegate void glClearDepthFunc(double Value);
+        glClearDepthFunc _glClearDepth;
+
         delegate void glClearColorFunc(float R, float G, float B, float A);
         glClearColorFunc _glClearColor;
+
+        delegate void glDepthFuncFunc(int func);
+        glDepthFuncFunc _glDepthFunc;
 
         delegate int glCreateShaderFunc(int ShaderType);
         glCreateShaderFunc _glCreateShader;
@@ -113,6 +120,10 @@ namespace Ratchet.Drawing.OpenGL
         delegate void glUniform4iFunc(int location, int value0, int value1, int value2, int value3);
         glUniform4iFunc _glUniform4i;
 
+        delegate void glUniformMatrix4fvFunc(int location, int count, bool transpose, IntPtr pMatrix);
+        glUniformMatrix4fvFunc _glUniformMatrix4fv;
+        
+
         delegate void glGetProgramInfoLogFunc(int ProgramHandle, IntPtr MaxLength, IntPtr pLength, IntPtr pInfoLog);
         glGetProgramInfoLogFunc _glGetProgramInfoLog;
 
@@ -146,6 +157,12 @@ namespace Ratchet.Drawing.OpenGL
         delegate void glViewportFunc(int x, int y, int width, int height);
         glViewportFunc _glViewport;
 
+        delegate void glDrawBufferFunc(int enumValue);
+        glDrawBufferFunc _glDrawBuffer;
+
+        delegate void glFlushFunc();
+        glFlushFunc _glFlushFunc;
+
         Version _Version;
 
         internal glContext(WGL.Context WGLContext)
@@ -166,13 +183,17 @@ namespace Ratchet.Drawing.OpenGL
             _Version = new Version(major, minor);
 
             _glEnable = WGL.GetProcAddress<glEnableFunc>("glEnable");
+            _glDisable = WGL.GetProcAddress<glDisableFunc>("glDisable");
+
 
             _glBufferData = WGL.GetProcAddress<glBufferDataFunc>("glBufferData");
             _glGenBuffers = WGL.GetProcAddress<glGenBuffersFunc>("glGenBuffers");
             _glBindBuffer = WGL.GetProcAddress<glBindBufferFunc>("glBindBuffer");
 
+            _glClearDepth = WGL.GetProcAddress<glClearDepthFunc>("glClearDepth");
             _glClearColor = WGL.GetProcAddress<glClearColorFunc>("glClearColor");
             _glClear = WGL.GetProcAddress<glClearFunc>("glClear");
+            _glDepthFunc = WGL.GetProcAddress<glDepthFuncFunc>("glDepthFunc");
 
             _glCreateShader = WGL.GetProcAddress<glCreateShaderFunc>("glCreateShader");
             _glShaderSource = WGL.GetProcAddress<glShaderSourceFunc>("glShaderSource");
@@ -198,6 +219,7 @@ namespace Ratchet.Drawing.OpenGL
             _glUniform2i = WGL.GetProcAddress<glUniform2iFunc>("glUniform2i");
             _glUniform3i = WGL.GetProcAddress<glUniform3iFunc>("glUniform3i");
             _glUniform4i = WGL.GetProcAddress<glUniform4iFunc>("glUniform4i");
+            _glUniformMatrix4fv = WGL.GetProcAddress<glUniformMatrix4fvFunc>("glUniformMatrix4fv");
 
             _glGenTextures = WGL.GetProcAddress<glGenTexturesFunc>("glGenTextures");
             _glBindTexture = WGL.GetProcAddress<glBindTextureFunc>("glBindTexture");
@@ -212,9 +234,16 @@ namespace Ratchet.Drawing.OpenGL
             _glDebugMessageCallback = WGL.GetProcAddress<glDebugMessageCallbackFunc>("glDebugMessageCallback");
 
             _glViewport = WGL.GetProcAddress<glViewportFunc>("glViewport");
+            _glDrawBuffer = WGL.GetProcAddress<glDrawBufferFunc>("glDrawBuffer");
+            _glFlushFunc = WGL.GetProcAddress<glFlushFunc>("glFlush");
 
             _ActiveTextureUnit = new TextureUnitTracker(this);
             _TextureUnitTrackers.Add(_ActiveTextureUnitIndex, _ActiveTextureUnit);
+        }
+
+        public void Flush()
+        {
+            _glFlushFunc();
         }
 
         public void Viewport(int x, int y, int width, int height)
@@ -222,16 +251,47 @@ namespace Ratchet.Drawing.OpenGL
             _glViewport(x, y, width, height);
         }
 
+        public enum DrawBufferMode : int
+        {
+            GL_NONE = 0,
+            GL_FRONT_LEFT = 0x0400,
+            GL_FRONT_RIGHT = 0x0401,
+            GL_BACK_LEFT = 0x0402,
+            GL_BACK_RIGHT = 0x0403,
+            GL_FRONT = 0x0404,
+            GL_BACK = 0x0405,
+            GL_LEFT = 0x0406,
+            GL_RIGHT = 0x0407,
+            GL_FRONT_AND_BACK = 0x0408,
+            GL_AUX0 = 0x0409,
+        }
+
+        public void DrawBuffer(DrawBufferMode DrawBufferMode)
+        {
+            _glDrawBuffer((int)DrawBufferMode);
+        }
+
         public enum Capability
         {
-            GL_VERTEX_ARRAY = 0x8074,
             GL_DEBUG_OUTPUT = 0x92E0,
-            GL_TEXTURE_2D = 0x0DE1,
+            /// <summary>
+            /// If enabled, blend the computed fragment color values with the values in the color buffers. 
+            /// </summary>
+            GL_BLEND = 0x0BE2,
+            /// <summary>
+            /// If enabled, do depth comparisons and update the depth buffer. Note that even if the depth buffer exists and the depth mask is non-zero, the depth buffer is not updated if the depth test is disabled.
+            /// </summary>
+            GL_DEPTH_TEST = 0x0B71,
         }
 
         public void Enable(Capability Capability)
         {
             _glEnable((int)Capability);
+        }
+
+        public void Disable(Capability Capability)
+        {
+            _glDisable((int)Capability);
         }
 
         internal delegate void DebugMessageCallbackInternalFunc(int source, int type, uint id, int severity, IntPtr length, IntPtr message, IntPtr userparam);
@@ -269,9 +329,38 @@ namespace Ratchet.Drawing.OpenGL
             _glClearColor(R, G, B, A);
         }
 
-        public void Clear(uint Target)
+        public void ClearDepth(double Value)
         {
-            _glClear(Target);
+            _glClearDepth(Value);
+        }
+
+        public enum ClearTarget : uint
+        {
+            GL_DEPTH_BUFFER = 0x00000100,
+            GL_STENCIL_BUFFER = 0x00000400,
+            GL_COLOR_BUFFER = 0x00004000,
+        }
+
+        public void Clear(ClearTarget Target)
+        {
+            _glClear((uint)Target);
+        }
+
+        public enum DepthFuncion : int
+        {
+            GL_NEVER = 0x0200,
+            GL_LESS = 0x0201,
+            GL_EQUAL = 0x0202,
+            GL_LEQUAL = 0x0203,
+            GL_GREATER = 0x0204,
+            GL_NOTEQUAL = 0x0205,
+            GL_GEQUAL = 0x0206,
+            GL_ALWAYS = 0x0207
+        }
+
+        public void DepthFunc(DepthFuncion func)
+        {
+            _glDepthFunc((int)func);
         }
 
         public void MakeCurrent()
@@ -584,6 +673,9 @@ namespace Ratchet.Drawing.OpenGL
         public void SetUniform(int location, int value0, int value1) { _glUniform2i(location, value0, value1); }
         public void SetUniform(int location, int value0, int value1, int value2) { _glUniform3i(location, value0, value1, value2); }
         public void SetUniform(int location, int value0, int value1, int value2, int value3) { _glUniform4i(location, value0, value1, value2, value3); }
+        public void SetUniformMatrix4(int location, int count, bool transpose, IntPtr matrix) { _glUniformMatrix4fv(location, count, transpose, matrix); }
+        public void SetUniformMatrix4(int location, bool transpose, IntPtr matrix) { _glUniformMatrix4fv(location, 1, transpose, matrix); }
+
 
         public enum PrimitivesType : int
         {

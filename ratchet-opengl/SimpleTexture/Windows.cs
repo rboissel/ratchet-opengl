@@ -66,6 +66,12 @@ void main(void)
 
         private void Windows_Load(object sender, EventArgs e)
         {
+            DoubleBuffered = false;
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, false);
+            SetStyle(ControlStyles.Opaque, true);
+
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             Size = new Size(800, 600);
 
@@ -96,7 +102,6 @@ void main(void)
             _IndexBuffer = _Context.GenBuffer();
             _IndexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ELEMENT_ARRAY_BUFFER);
             _IndexBuffer.BufferData(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6, new int[] { 0, 1, 2, 0, 2, 3 }, Ratchet.Drawing.OpenGL.glBuffer.Usage.GL_STATIC_DRAW);
-            _Context.Enable(Ratchet.Drawing.OpenGL.glContext.Capability.GL_VERTEX_ARRAY);
 
             System.Drawing.Bitmap image = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(@"./ratchet.png");
 
@@ -137,11 +142,10 @@ void main(void)
             int texSampler = _Shader.GetUniformLocation("textureSampler");
 
             _Context.ClearColor(0.1f, 0.7f, 1.0f, 1.0f);
-            _Context.Clear(0x4000);
+            _Context.Clear(Ratchet.Drawing.OpenGL.glContext.ClearTarget.GL_COLOR_BUFFER);
 
             // Activate Sampler 0 and bind our texture to it
             _Context.ActiveTexture(0);
-            _Context.Enable(Ratchet.Drawing.OpenGL.glContext.Capability.GL_TEXTURE_2D);
             _Texture.BindTexture(Ratchet.Drawing.OpenGL.glTexture.BindTarget.GL_TEXTURE_2D);
 
 
