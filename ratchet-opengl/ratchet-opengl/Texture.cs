@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ratchet.Drawing.OpenGL
 {
-    public class glTexture
+    public class glTexture : IDisposable
     {
         public enum BindTarget
         {
@@ -178,7 +178,8 @@ namespace Ratchet.Drawing.OpenGL
             GL_NEAREST_MIPMAP_NEAREST = 0x2700,
             GL_LINEAR_MIPMAP_NEAREST = 0x2701,
             GL_NEAREST_MIPMAP_LINEAR = 0x2702,
-            GL_LINEAR_MIPMAP_LINEAR = 0x2703
+            GL_LINEAR_MIPMAP_LINEAR = 0x2703,
+            GL_CLAMP_TO_BORDER = 0x812D
         }
 
         int _Handle;
@@ -208,9 +209,16 @@ namespace Ratchet.Drawing.OpenGL
 
         public unsafe void TexImage2D(BindTarget Target, int Level, InternalFormat InternalFormat, int Width, int Height, int Border, Format Format, Type Type, byte[] Data)
         {
-            fixed (byte* pData = &Data[0])
+            if (Data == null)
             {
-                TexImage2D(Target, Level, InternalFormat, Width, Height, Border, Format, Type, new IntPtr(pData));
+                TexImage2D(Target, Level, InternalFormat, Width, Height, Border, Format, Type, new IntPtr(0));
+            }
+            else
+            {
+                fixed (byte* pData = &Data[0])
+                {
+                    TexImage2D(Target, Level, InternalFormat, Width, Height, Border, Format, Type, new IntPtr(pData));
+                }
             }
         }
 
@@ -218,5 +226,8 @@ namespace Ratchet.Drawing.OpenGL
         {
             _Parent.TexParameter(this, Target, (int)Parameter, (int)ParameterValue);
         }
+
+        public void Dispose() { if (_Handle != 0) { _Parent.DeleteTexture(this); _Handle = 0; } }
+        ~glTexture() { Dispose(); }
     }
 }

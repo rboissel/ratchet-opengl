@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ratchet.Drawing.OpenGL
 {
-    public class glBuffer
+    public class glBuffer : IDisposable
     {
         public enum BindTarget
         {
@@ -91,5 +91,8 @@ namespace Ratchet.Drawing.OpenGL
         {
 
         }
+
+        public void Dispose() { if (_Handle != 0) { _Parent.DeleteBuffer(this); _Handle = 0; } }
+        ~glBuffer() { Dispose(); }
     }
 }

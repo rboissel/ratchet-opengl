@@ -2,13 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ratchet.Drawing.OpenGL
 {
     public unsafe class glContext
     {
+        int _CurrentThreadId;
         WGL.Context _WGLContext;
+        int[] _PendingTextureDelete = new int[32];
+        int _PendingTextureDeleteCount = 0;
+        int[] _PendingBufferDelete = new int[32];
+        int _PendingBufferDeleteCount = 0;
+        int[] _PendingFramebufferDelete = new int[32];
+        int _PendingFramebufferDeleteCount = 0;
 
         const int GL_VENDOR = 0x1F00;
         const int GL_MAJOR_VERSION = 0x821B;
@@ -36,6 +44,9 @@ namespace Ratchet.Drawing.OpenGL
 
         delegate void glGenBuffersFunc(int n, int* buffers);
         glGenBuffersFunc _glGenBuffers;
+
+        delegate void glDeleteBuffersFunc(int n, int* buffers);
+        glDeleteBuffersFunc _glDeleteBuffers;
 
         delegate void glBufferDataFunc(int target, IntPtr size, void* data, int usage);
         glBufferDataFunc _glBufferData;
@@ -142,6 +153,9 @@ namespace Ratchet.Drawing.OpenGL
         delegate void glGenTexturesFunc(int n, int* buffers);
         glGenTexturesFunc _glGenTextures;
 
+        delegate void glDeleteTexturesFunc(int n, int* buffers);
+        glDeleteTexturesFunc _glDeleteTextures;
+
         delegate void glBindTextureFunc(int target, int texture);
         glBindTextureFunc _glBindTexture;
 
@@ -163,12 +177,33 @@ namespace Ratchet.Drawing.OpenGL
         delegate void glFlushFunc();
         glFlushFunc _glFlushFunc;
 
+        delegate void glGenFramebuffersFunc(int n, int* framebuffers);
+        glGenFramebuffersFunc _glGenFramebuffers;
+
+        delegate void glDeleteFramebuffersFunc(int n, int* framebuffers);
+        glDeleteFramebuffersFunc _glDeleteFramebuffers;
+
+        delegate void glBindFramebufferFunc(int target, int texture);
+        glBindFramebufferFunc _glBindFramebuffer;
+
+        delegate void glFramebufferTextureFunc(int target, int attachment, int texture, int level);
+        glFramebufferTextureFunc _glFramebufferTexture;
+
+        delegate void glDrawBuffersFunc(int n, int* buffers);
+        glDrawBuffersFunc _glDrawBuffers;
+
         Version _Version;
+
+        delegate void NotSupportedFunc();
+        IntPtr _notSupportedPtr;
+        static void notSupported() { throw new NotSupportedException(); }
 
         internal glContext(WGL.Context WGLContext)
         {
             _WGLContext = WGLContext;
             _WGLContext.MakeCurrent();
+
+            _notSupportedPtr = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate<NotSupportedFunc>(notSupported);
 
             glGetString = WGL.GetProcAddress<glGetStringFunc>("glGetString");
             glGetIntegerv = WGL.GetProcAddress<glGetIntegervFunc>("glGetIntegerv");
@@ -188,6 +223,7 @@ namespace Ratchet.Drawing.OpenGL
 
             _glBufferData = WGL.GetProcAddress<glBufferDataFunc>("glBufferData");
             _glGenBuffers = WGL.GetProcAddress<glGenBuffersFunc>("glGenBuffers");
+            _glDeleteBuffers = WGL.GetProcAddress<glDeleteBuffersFunc>("glDeleteBuffers");
             _glBindBuffer = WGL.GetProcAddress<glBindBufferFunc>("glBindBuffer");
 
             _glClearDepth = WGL.GetProcAddress<glClearDepthFunc>("glClearDepth");
@@ -222,6 +258,7 @@ namespace Ratchet.Drawing.OpenGL
             _glUniformMatrix4fv = WGL.GetProcAddress<glUniformMatrix4fvFunc>("glUniformMatrix4fv");
 
             _glGenTextures = WGL.GetProcAddress<glGenTexturesFunc>("glGenTextures");
+            _glDeleteTextures = WGL.GetProcAddress<glDeleteTexturesFunc>("glDeleteTextures");
             _glBindTexture = WGL.GetProcAddress<glBindTextureFunc>("glBindTexture");
             _glTexImage2D = WGL.GetProcAddress<glTexImage2DFunc>("glTexImage2D");
             _glActiveTexture = WGL.GetProcAddress<glActiveTextureFunc>("glActiveTexture");
@@ -237,6 +274,22 @@ namespace Ratchet.Drawing.OpenGL
             _glDrawBuffer = WGL.GetProcAddress<glDrawBufferFunc>("glDrawBuffer");
             _glFlushFunc = WGL.GetProcAddress<glFlushFunc>("glFlush");
 
+            try
+            {
+                _glGenFramebuffers = WGL.GetProcAddress<glGenFramebuffersFunc>("glGenFramebuffers");
+                _glDeleteFramebuffers = WGL.GetProcAddress<glDeleteFramebuffersFunc>("glDeleteFramebuffers");
+                _glBindFramebuffer = WGL.GetProcAddress<glBindFramebufferFunc>("glBindFramebuffer");
+                _glFramebufferTexture = WGL.GetProcAddress<glFramebufferTextureFunc>("glFramebufferTexture");
+                _glDrawBuffers = WGL.GetProcAddress<glDrawBuffersFunc>("glDrawBuffers");
+            }
+            catch
+            {
+                _glGenFramebuffers = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glGenFramebuffersFunc>(_notSupportedPtr);
+                _glDeleteFramebuffers = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glDeleteFramebuffersFunc>(_notSupportedPtr);
+                _glBindFramebuffer = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glBindFramebufferFunc>(_notSupportedPtr);
+                _glFramebufferTexture = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glFramebufferTextureFunc>(_notSupportedPtr);
+            }
+
             _ActiveTextureUnit = new TextureUnitTracker(this);
             _TextureUnitTrackers.Add(_ActiveTextureUnitIndex, _ActiveTextureUnit);
         }
@@ -244,6 +297,7 @@ namespace Ratchet.Drawing.OpenGL
         public void Flush()
         {
             _glFlushFunc();
+            CheckForPendingDelete();
         }
 
         public void Viewport(int x, int y, int width, int height)
@@ -264,6 +318,7 @@ namespace Ratchet.Drawing.OpenGL
             GL_RIGHT = 0x0407,
             GL_FRONT_AND_BACK = 0x0408,
             GL_AUX0 = 0x0409,
+            GL_COLOR_ATTACHMENT0 = 0x8CE0
         }
 
         public void DrawBuffer(DrawBufferMode DrawBufferMode)
@@ -363,16 +418,48 @@ namespace Ratchet.Drawing.OpenGL
             _glDepthFunc((int)func);
         }
 
+        void CheckForPendingDelete()
+        {
+            lock (this)
+            {
+
+                if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
+                {
+                    if (_PendingTextureDeleteCount > 0)
+                    {
+                        fixed (int* pTextureHandle = &_PendingTextureDelete[0]) { _glDeleteTextures(_PendingTextureDeleteCount, pTextureHandle); }
+                        _PendingTextureDeleteCount = 0;
+                    }
+
+                    if (_PendingBufferDeleteCount > 0)
+                    {
+                        fixed (int* pBufferHandle = &_PendingBufferDelete[0]) { _glDeleteTextures(_PendingBufferDeleteCount, pBufferHandle); }
+                        _PendingBufferDeleteCount = 0;
+                    }
+
+                    if (_PendingFramebufferDeleteCount > 0)
+                    {
+                        fixed (int* pFramebufferHandle = &_PendingFramebufferDelete[0]) { _glDeleteFramebuffers(_PendingFramebufferDeleteCount, pFramebufferHandle); }
+                        _PendingFramebufferDeleteCount = 0;
+                    }
+                }
+            }
+        }
+
         public void MakeCurrent()
         {
-            if (_WGLContext != null) { _WGLContext.MakeCurrent(); }
-            //else if () { }
+            lock (this)
+            {
+                if (_WGLContext != null) { _WGLContext.MakeCurrent(); }
+                _CurrentThreadId = Thread.CurrentThread.ManagedThreadId;
+                CheckForPendingDelete();
+            }
         }
 
         public void SwapBuffers()
         {
             if (_WGLContext != null) { _WGLContext.SwapBuffers(); }
-            //else if () { }
+            CheckForPendingDelete();
         }
 
         public glTexture GenTexture()
@@ -380,6 +467,26 @@ namespace Ratchet.Drawing.OpenGL
             int textureHandle;
             _glGenBuffers(1, &textureHandle);
             return new glTexture(this, textureHandle);
+        }
+
+        internal void DeleteTexture(glTexture Texture)
+        {
+            int textureHandle = Texture.Handle;
+
+            lock (this)
+            {
+
+                if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
+                {
+                    _glDeleteTextures(1, &textureHandle);
+                }
+                else
+                {
+                    if (_PendingTextureDeleteCount == _PendingTextureDelete.Length) { Array.Resize<int>(ref _PendingTextureDelete, _PendingTextureDelete.Length * 2); }
+                    _PendingTextureDelete[_PendingTextureDeleteCount] = textureHandle;
+                    _PendingTextureDeleteCount++;
+                }
+            }
         }
 
         public glTexture[] GenTextures(int numTextures)
@@ -510,6 +617,25 @@ namespace Ratchet.Drawing.OpenGL
                 buffers[n] = new glBuffer(this, bufferHandle[n]);
             }
             return buffers;
+        }
+
+        internal void DeleteBuffer(glBuffer Buffer)
+        {
+            int bufferHandle = Buffer.Handle;
+
+            lock (this)
+            {
+                if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
+                {
+                    _glDeleteBuffers(1, &bufferHandle);
+                }
+                else
+                {
+                    if (_PendingBufferDeleteCount == _PendingBufferDelete.Length) { Array.Resize<int>(ref _PendingBufferDelete, _PendingBufferDelete.Length * 2); }
+                    _PendingBufferDelete[_PendingBufferDeleteCount] = bufferHandle;
+                    _PendingBufferDeleteCount++;
+                }
+            }
         }
 
         internal static int GlTargetTobufferTargetIndex(glBuffer.BindTarget Target)
@@ -806,6 +932,99 @@ namespace Ratchet.Drawing.OpenGL
             fixed (byte* pNameData = &ZeroTerminated[0])
             {
                 return _glGetUniformLocation(Program.Handle, new IntPtr(pNameData));
+            }
+        }
+
+        public glFramebuffer GenFramebuffer()
+        {
+            int framebufferHandle;
+            _glGenFramebuffers(1, &framebufferHandle);
+            return new glFramebuffer(this, framebufferHandle);
+        }
+
+        public glFramebuffer[] GenFramebuffers(int numFramebuffers)
+        {
+            int[] framebufferHandle = new int[numFramebuffers];
+            fixed (int* pframebufferHandles = &framebufferHandle[0])
+            {
+                _glGenFramebuffers(numFramebuffers, pframebufferHandles);
+            }
+            glFramebuffer[] framebuffers = new glFramebuffer[numFramebuffers];
+            for (int n = 0; n < numFramebuffers; n++)
+            {
+                framebuffers[n] = new glFramebuffer(this, framebufferHandle[n]);
+            }
+            return framebuffers;
+        }
+
+        public void DrawBuffers(DrawBufferMode[] DrawBufferMode)
+        {
+            int* array = stackalloc int[DrawBufferMode.Length];
+            for (int n = 0; n < DrawBufferMode.Length; n++)
+            {
+                array[n] = (int)DrawBufferMode[n];
+            }
+            _glDrawBuffers(DrawBufferMode.Length, array);
+        }
+
+        internal static int GlTargetToFramebufferTargetIndex(glFramebuffer.BindTarget Target)
+        {
+            switch (Target)
+            {
+                case glFramebuffer.BindTarget.GL_FRAMEBUFFER: return 0;
+                case glFramebuffer.BindTarget.GL_READ_FRAMEBUFFER: return 1;
+                case glFramebuffer.BindTarget.GL_DRAW_FRAMEBUFFER: return 2;
+            }
+            return 0;
+        }
+
+        internal void DeleteFramebuffer(glFramebuffer framebuffer)
+        {
+            int framebufferHandle = framebuffer.Handle;
+
+            lock (this)
+            {
+                if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
+                {
+                    _glDeleteFramebuffers(1, &framebufferHandle);
+                }
+                else
+                {
+                    if (_PendingFramebufferDeleteCount == _PendingFramebufferDelete.Length) { Array.Resize<int>(ref _PendingFramebufferDelete, _PendingFramebufferDelete.Length * 2); }
+                    _PendingFramebufferDelete[_PendingFramebufferDeleteCount] = framebufferHandle;
+                    _PendingFramebufferDeleteCount++;
+                }
+            }
+        }
+
+        glFramebuffer[] _Framebuffers = new glFramebuffer[GlTargetToFramebufferTargetIndex(glFramebuffer.BindTarget.GL_DRAW_FRAMEBUFFER) + 1];
+        internal void BindFramebuffer(glFramebuffer Framebuffer, glFramebuffer.BindTarget Target)
+        {
+            int indexTarget = GlTargetToFramebufferTargetIndex(Target);
+
+            lock (_Framebuffers)
+            {
+                if (Framebuffer == null)
+                {
+                    _glBindFramebuffer((int)Target, 0);
+                    _Framebuffers[indexTarget] = null;
+                }
+                else
+                {
+                    _glBindFramebuffer((int)Target, Framebuffer.Handle);
+                    _Framebuffers[indexTarget] = Framebuffer;
+                }
+            }
+        }
+
+        internal void FramebufferTexture(glFramebuffer framebuffer, glFramebuffer.BindTarget Target, glFramebuffer.Attachment attachment, glTexture texture, int level)
+        {
+            int indexTarget = GlTargetToFramebufferTargetIndex(Target);
+
+            lock (_Framebuffers)
+            {
+                if (_Framebuffers[indexTarget] != framebuffer) { throw new Exception("Invalid bind target. The frambeuffer must be bound to this target first"); }
+                _glFramebufferTexture((int)Target, (int)attachment, texture.Handle, level);
             }
         }
 

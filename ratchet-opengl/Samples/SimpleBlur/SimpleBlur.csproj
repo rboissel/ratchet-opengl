@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{58295309-28ED-4EEB-94D8-FC8E382426BE}</ProjectGuid>
+    <ProjectGuid>{2426E7F7-3190-49F8-BFD4-0BE95B310436}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>SimpleCube</RootNamespace>
-    <AssemblyName>SimpleCube</AssemblyName>
+    <RootNamespace>SimpleBlur</RootNamespace>
+    <AssemblyName>SimpleBlur</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,9 +34,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ratchet-math-matrix-net45, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Ratchet.Math.Matrix.1.0.2.0\lib\net45\ratchet-math-matrix-net45.dll</HintPath>
-    </Reference>
     <Reference Include="ratchet-wgl">
       <HintPath>..\..\packages\Ratchet.Drawing.OpenGL.WGL.1.0.9.0\lib\net45\ratchet-wgl.dll</HintPath>
     </Reference>
@@ -52,11 +50,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SimpleCube.cs">
+    <Compile Include="SimpleBlur.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SimpleCube.Designer.cs">
-      <DependentUpon>SimpleCube.cs</DependentUpon>
+    <Compile Include="SimpleBlur.Designer.cs">
+      <DependentUpon>SimpleBlur.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -68,11 +66,11 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="SimpleCube.resx">
-      <DependentUpon>SimpleCube.cs</DependentUpon>
+    <EmbeddedResource Include="SimpleBlur.resx">
+      <DependentUpon>SimpleBlur.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -91,6 +89,11 @@
       <Project>{c9bba15c-0166-4d06-9ada-c55dac97e827}</Project>
       <Name>ratchet-opengl</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ratchet.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
