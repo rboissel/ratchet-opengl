@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ratchet.Drawing.OpenGL
 {
-    public class glShader
+    public class glShader : IDisposable
     {
         public enum Type : int
         {
@@ -34,6 +34,8 @@ namespace Ratchet.Drawing.OpenGL
         public glContext Context { get { return _Parent; } }
 
         internal glShader(glContext Context, int Handle) { _Parent = Context; _Handle = Handle; }
-        
+
+        public void Dispose() { if (_Handle != 0) { _Parent.DeleteShader(this); _Handle = 0; } }
+        ~glShader() { Dispose(); }
     }
 }

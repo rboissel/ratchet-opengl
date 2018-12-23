@@ -17,6 +17,10 @@ namespace Ratchet.Drawing.OpenGL
         int _PendingBufferDeleteCount = 0;
         int[] _PendingFramebufferDelete = new int[32];
         int _PendingFramebufferDeleteCount = 0;
+        int[] _PendingProgramDelete = new int[32];
+        int _PendingProgramDeleteCount = 0;
+        int[] _PendingShaderDelete = new int[32];
+        int _PendingShaderDeleteCount = 0;
 
         const int GL_VENDOR = 0x1F00;
         const int GL_MAJOR_VERSION = 0x821B;
@@ -69,6 +73,9 @@ namespace Ratchet.Drawing.OpenGL
         delegate int glCreateShaderFunc(int ShaderType);
         glCreateShaderFunc _glCreateShader;
 
+        delegate int glDeleteShaderFunc(int ShaderHandler);
+        glDeleteShaderFunc _glDeleteShader;
+
         delegate void glShaderSourceFunc(int ShaderHandle, IntPtr Count, IntPtr ppString, IntPtr pLength);
         glShaderSourceFunc _glShaderSource;
 
@@ -85,6 +92,9 @@ namespace Ratchet.Drawing.OpenGL
 
         delegate int glCreateProgramFunc();
         glCreateProgramFunc _glCreateProgram;
+
+        delegate int glDeleteProgramFunc(int ProgramHandle);
+        glDeleteProgramFunc _glDeleteProgram;
 
         delegate void glUseProgramFunc(int ProgramHandle);
         glUseProgramFunc _glUseProgram;
@@ -232,12 +242,14 @@ namespace Ratchet.Drawing.OpenGL
             _glDepthFunc = WGL.GetProcAddress<glDepthFuncFunc>("glDepthFunc");
 
             _glCreateShader = WGL.GetProcAddress<glCreateShaderFunc>("glCreateShader");
+            _glDeleteShader = WGL.GetProcAddress<glDeleteShaderFunc>("glDeleteShader");
             _glShaderSource = WGL.GetProcAddress<glShaderSourceFunc>("glShaderSource");
             _glCompileShader = WGL.GetProcAddress<glCompileShaderFunc>("glCompileShader");
             _glGetShaderiv = WGL.GetProcAddress<glGetShaderivFunc>("glGetShaderiv");
             _glGetShaderInfoLog = WGL.GetProcAddress<glGetShaderInfoLogFunc>("glGetShaderInfoLog");
 
             _glCreateProgram = WGL.GetProcAddress<glCreateProgramFunc>("glCreateProgram");
+            _glDeleteProgram = WGL.GetProcAddress<glDeleteProgramFunc>("glDeleteProgram");
             _glAttachShader = WGL.GetProcAddress<glAttachShaderFunc>("glAttachShader");
             _glLinkProgram = WGL.GetProcAddress<glLinkProgramFunc>("glLinkProgram");
             _glLinkProgram = WGL.GetProcAddress<glLinkProgramFunc>("glLinkProgram");
@@ -433,7 +445,7 @@ namespace Ratchet.Drawing.OpenGL
 
                     if (_PendingBufferDeleteCount > 0)
                     {
-                        fixed (int* pBufferHandle = &_PendingBufferDelete[0]) { _glDeleteTextures(_PendingBufferDeleteCount, pBufferHandle); }
+                        fixed (int* pBufferHandle = &_PendingBufferDelete[0]) { _glDeleteBuffers(_PendingBufferDeleteCount, pBufferHandle); }
                         _PendingBufferDeleteCount = 0;
                     }
 
@@ -441,6 +453,18 @@ namespace Ratchet.Drawing.OpenGL
                     {
                         fixed (int* pFramebufferHandle = &_PendingFramebufferDelete[0]) { _glDeleteFramebuffers(_PendingFramebufferDeleteCount, pFramebufferHandle); }
                         _PendingFramebufferDeleteCount = 0;
+                    }
+
+                    if (_PendingProgramDeleteCount > 0)
+                    {
+                        for (int n = 0; n < _PendingProgramDeleteCount; n++) { _glDeleteProgram(_PendingProgramDelete[n]); }
+                        _PendingProgramDeleteCount = 0;
+                    }
+
+                    if (_PendingShaderDeleteCount > 0)
+                    {
+                        for (int n = 0; n < _PendingShaderDeleteCount; n++) { _glDeleteShader(_PendingShaderDelete[n]); }
+                        _PendingShaderDeleteCount = 0;
                     }
                 }
             }
@@ -681,6 +705,27 @@ namespace Ratchet.Drawing.OpenGL
             }
         }
 
+        internal void DeleteShader(glShader Shader)
+        {
+            int shaderHandle = Shader.Handle;
+
+            lock (this)
+            {
+
+                if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
+                {
+                    _glDeleteShader(shaderHandle);
+                }
+                else
+                {
+                    if (_PendingShaderDeleteCount == _PendingShaderDelete.Length) { Array.Resize<int>(ref _PendingShaderDelete, _PendingShaderDelete.Length * 2); }
+                    _PendingShaderDelete[_PendingShaderDeleteCount] = shaderHandle;
+                    _PendingShaderDeleteCount++;
+                }
+            }
+        }
+
+
         public glShader CreateShader(glShader.Type Type, string Source)
         {
             int handle = _glCreateShader((int)Type);
@@ -739,6 +784,26 @@ namespace Ratchet.Drawing.OpenGL
                 }
 
                 throw new Exception("Failed to compile the shader: " + log);
+            }
+        }
+
+        internal void DeleteProgram(glProgram Program)
+        {
+            int programHandle = Program.Handle;
+
+            lock (this)
+            {
+
+                if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
+                {
+                    _glDeleteProgram(programHandle);
+                }
+                else
+                {
+                    if (_PendingProgramDeleteCount == _PendingProgramDelete.Length) { Array.Resize<int>(ref _PendingProgramDelete, _PendingProgramDelete.Length * 2); }
+                    _PendingProgramDelete[_PendingProgramDeleteCount] = programHandle;
+                    _PendingProgramDeleteCount++;
+                }
             }
         }
 

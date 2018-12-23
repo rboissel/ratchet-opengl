@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ratchet.Drawing.OpenGL
 {
-    public class glProgram
+    public class glProgram : IDisposable
     {
         internal enum SymbolicName : int
         {
@@ -46,5 +46,8 @@ namespace Ratchet.Drawing.OpenGL
         public void AttachShader(glShader Shader) { _Parent.AttachShader(this, Shader); }
         public void LinkProgram() { _Parent.LinkProgram(this); }
         public void UseProgram() { _Parent.UseProgram(this); }
+
+        public void Dispose() { if (_Handle != 0) { _Parent.DeleteProgram(this); _Handle = 0; } }
+        ~glProgram() { Dispose(); }
     }
 }
