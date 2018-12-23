@@ -181,8 +181,6 @@ void main(void)
                 _Shader = _Context.CreateProgram();
                 _Shader.AttachShader(vertexShader);
                 _Shader.AttachShader(fragmentShader);
-                _Shader.BindAttribLocation(0, "in_Position");
-                _Shader.BindAttribLocation(1, "in_textureCoord");
                 _Shader.LinkProgram();
             }
 
@@ -192,8 +190,6 @@ void main(void)
                 _BlurShader = _Context.CreateProgram();
                 _BlurShader.AttachShader(vertexShader);
                 _BlurShader.AttachShader(fragmentShader);
-                _BlurShader.BindAttribLocation(0, "in_Position");
-                _BlurShader.BindAttribLocation(1, "in_textureCoord");
                 _BlurShader.LinkProgram();
             }
             
@@ -231,7 +227,7 @@ void main(void)
                 _Context.EnableVertexAttribArray(positionAttribIndex);
                 _Context.VertexAttribPointer(0, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(0));
 
-                _Context.EnableVertexAttribArray(1);
+                _Context.EnableVertexAttribArray(texCoordAttribIndex);
                 _Context.VertexAttribPointer(1, 2, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(4 * sizeof(float)));
 
                 // Link the uniform "textureSampler" that is expecting a textureSampler to be bound to it
@@ -264,7 +260,7 @@ void main(void)
                 _Context.EnableVertexAttribArray(positionAttribIndex);
                 _Context.VertexAttribPointer(0, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(0));
 
-                _Context.EnableVertexAttribArray(1);
+                _Context.EnableVertexAttribArray(texCoordAttribIndex);
                 _Context.VertexAttribPointer(1, 2, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(4 * sizeof(float)));
 
                 // Link the uniform "textureSampler" that is expecting a textureSampler to be bound to it

@@ -124,8 +124,11 @@ void main(void)
             _Shader = _Context.CreateProgram();
             _Shader.AttachShader(vertexShader);
             _Shader.AttachShader(fragmentShader);
-            _Shader.BindAttribLocation(0, "in_Position");
-            _Shader.BindAttribLocation(1, "in_textureCoord");
+
+            // If you wish to specify the bind location manually you can do so
+            // before linking
+            // _Shader.BindAttribLocation(0, "in_Position");
+            // _Shader.BindAttribLocation(1, "in_textureCoord");
             _Shader.LinkProgram();
 
             _Context.Viewport(0, 0, Width, Height);
@@ -155,7 +158,7 @@ void main(void)
             _Context.EnableVertexAttribArray(positionAttribIndex);
             _Context.VertexAttribPointer(0, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(0));
 
-            _Context.EnableVertexAttribArray(1);
+            _Context.EnableVertexAttribArray(texCoordAttribIndex);
             _Context.VertexAttribPointer(1, 2, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(4 * sizeof(float)));
 
             // Link the uniform "textureSampler" that is expecting a textureSampler to be bound to it

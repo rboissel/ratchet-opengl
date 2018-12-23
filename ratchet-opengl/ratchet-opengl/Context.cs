@@ -208,12 +208,18 @@ namespace Ratchet.Drawing.OpenGL
         IntPtr _notSupportedPtr;
         static void notSupported() { throw new NotSupportedException(); }
 
+        static internal T CastDelegate<T>(IntPtr functionPointer)
+        {
+            Delegate del = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(functionPointer, typeof(T));
+            return (T)((object)del);
+        }
+
         internal glContext(WGL.Context WGLContext)
         {
             _WGLContext = WGLContext;
             _WGLContext.MakeCurrent();
 
-            _notSupportedPtr = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate<NotSupportedFunc>(notSupported);
+            _notSupportedPtr = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate((NotSupportedFunc)notSupported);
 
             glGetString = WGL.GetProcAddress<glGetStringFunc>("glGetString");
             glGetIntegerv = WGL.GetProcAddress<glGetIntegervFunc>("glGetIntegerv");
@@ -296,10 +302,10 @@ namespace Ratchet.Drawing.OpenGL
             }
             catch
             {
-                _glGenFramebuffers = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glGenFramebuffersFunc>(_notSupportedPtr);
-                _glDeleteFramebuffers = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glDeleteFramebuffersFunc>(_notSupportedPtr);
-                _glBindFramebuffer = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glBindFramebufferFunc>(_notSupportedPtr);
-                _glFramebufferTexture = System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer<glFramebufferTextureFunc>(_notSupportedPtr);
+                _glGenFramebuffers = CastDelegate<glGenFramebuffersFunc>(_notSupportedPtr);
+                _glDeleteFramebuffers = CastDelegate<glDeleteFramebuffersFunc>(_notSupportedPtr);
+                _glBindFramebuffer = CastDelegate<glBindFramebufferFunc>(_notSupportedPtr);
+                _glFramebufferTexture = CastDelegate<glFramebufferTextureFunc>(_notSupportedPtr);
             }
 
             _ActiveTextureUnit = new TextureUnitTracker(this);

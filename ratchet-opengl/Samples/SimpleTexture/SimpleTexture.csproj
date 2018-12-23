@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\bin\Debug\samples\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,14 +27,15 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\bin\Release\samples\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ratchet-wgl">
-      <HintPath>..\packages\Ratchet.Drawing.OpenGL.WGL.1.0.9.0\lib\net45\ratchet-wgl.dll</HintPath>
+      <HintPath>..\..\packages\Ratchet.Drawing.OpenGL.WGL.1.0.9.0\lib\net45\ratchet-wgl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -84,7 +85,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ratchet-opengl\ratchet-opengl.csproj">
+    <ProjectReference Include="..\..\ratchet-opengl\ratchet-opengl.csproj">
       <Project>{c9bba15c-0166-4d06-9ada-c55dac97e827}</Project>
       <Name>ratchet-opengl</Name>
     </ProjectReference>

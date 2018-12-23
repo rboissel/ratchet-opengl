@@ -103,8 +103,6 @@ void main(void)
             _Shader = _Context.CreateProgram();
             _Shader.AttachShader(vertexShader);
             _Shader.AttachShader(fragmentShader);
-            _Shader.BindAttribLocation(0, "in_Position");
-            _Shader.BindAttribLocation(1, "in_Color");
             _Shader.LinkProgram();
 
             _Context.Viewport(0, 0, Width, Height);
@@ -128,7 +126,7 @@ void main(void)
             _Context.EnableVertexAttribArray(positionAttribIndex);
             _Context.VertexAttribPointer(0, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 8 * sizeof(float), new IntPtr(0));
 
-            _Context.EnableVertexAttribArray(1);
+            _Context.EnableVertexAttribArray(colorAttribIndex);
             _Context.VertexAttribPointer(1, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 8 * sizeof(float), new IntPtr(4 * sizeof(float)));
 
             _Context.DrawElements(Ratchet.Drawing.OpenGL.glContext.PrimitivesType.GL_TRIANGLES, 3, Ratchet.Drawing.OpenGL.glContext.IndiceType.GL_UNSIGNED_INT);

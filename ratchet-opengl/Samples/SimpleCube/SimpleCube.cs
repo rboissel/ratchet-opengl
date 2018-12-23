@@ -135,8 +135,6 @@ void main(void)
             _Shader = _Context.CreateProgram();
             _Shader.AttachShader(vertexShader);
             _Shader.AttachShader(fragmentShader);
-            _Shader.BindAttribLocation(0, "in_Position");
-            _Shader.BindAttribLocation(1, "in_textureCoord");
             _Shader.LinkProgram();
 
             _Context.Viewport(0, 0, Width, Height);
