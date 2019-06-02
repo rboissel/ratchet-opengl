@@ -202,6 +202,9 @@ namespace Ratchet.Drawing.OpenGL
         delegate void glDrawBuffersFunc(int n, int* buffers);
         glDrawBuffersFunc _glDrawBuffers;
 
+        delegate void glBlendFunc(int sfactor, int dfactor);
+        glBlendFunc _glBlendFunc;
+
         Version _Version;
 
         delegate void NotSupportedFunc();
@@ -308,6 +311,8 @@ namespace Ratchet.Drawing.OpenGL
                 _glFramebufferTexture = CastDelegate<glFramebufferTextureFunc>(_notSupportedPtr);
             }
 
+            _glBlendFunc = WGL.GetProcAddress<glBlendFunc>("glBlendFunc");
+
             _ActiveTextureUnit = new TextureUnitTracker(this);
             _TextureUnitTrackers.Add(_ActiveTextureUnitIndex, _ActiveTextureUnit);
         }
@@ -365,6 +370,26 @@ namespace Ratchet.Drawing.OpenGL
         public void Disable(Capability Capability)
         {
             _glDisable((int)Capability);
+        }
+
+        public enum BlendindFactor : int
+        {
+            GL_ZERO = 0,
+            GL_ONE = 1,
+            GL_SRC_COLOR = 0x0300,
+            GL_ONE_MINUS_SRC_COLOR = 0x0301,
+            GL_SRC_ALPHA = 0x0302,
+            GL_ONE_MINUS_SRC_ALPHA = 0x0303,
+            GL_DST_ALPHA = 0x0304,
+            GL_ONE_MINUS_DST_ALPHA = 0x0305,
+            GL_DST_COLOR = 0x0306,
+            GL_ONE_MINUS_DST_COLOR = 0x0307,
+            GL_SRC_ALPHA_SATURATE = 0x0308,
+        }
+
+        public void BlendFunc(BlendindFactor sourceFactor, BlendindFactor destinationFactor)
+        {
+            _glBlendFunc((int)sourceFactor, (int)destinationFactor);
         }
 
         internal delegate void DebugMessageCallbackInternalFunc(int source, int type, uint id, int severity, IntPtr length, IntPtr message, IntPtr userparam);

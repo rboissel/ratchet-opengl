@@ -90,7 +90,7 @@ void main(void)
             });
             _VertexBuffer = _Context.GenBuffer();
             _VertexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ARRAY_BUFFER);
-            float[] triangle = new float[] { -0.5f, -0.5f, -0.5f, 1.0f, // Vertex 0 Position
+            float[] triangles = new float[] { -0.5f, -0.5f, -0.5f, 1.0f, // Vertex 0 Position
                                               1.0f,  1.0f,
 
                                               0.5f, -0.5f, -0.5f, 1.0f, // Vertex 1 Position
@@ -114,7 +114,7 @@ void main(void)
                                               -0.5f,  0.5f, 0.5f, 1.0f, // Vertex 7 Position
                                               1.0f,  0.0f,
             };
-            _VertexBuffer.BufferData(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ARRAY_BUFFER, sizeof(float) * triangle.Length, triangle, Ratchet.Drawing.OpenGL.glBuffer.Usage.GL_STATIC_DRAW);
+            _VertexBuffer.BufferData(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ARRAY_BUFFER, sizeof(float) * triangles.Length, triangles, Ratchet.Drawing.OpenGL.glBuffer.Usage.GL_STATIC_DRAW);
 
             _IndexBuffer = _Context.GenBuffer();
             _IndexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ELEMENT_ARRAY_BUFFER);
@@ -155,7 +155,6 @@ void main(void)
 
 
             int positionAttribIndex = _Shader.GetAttribLocation("in_Position");
-            int texCoordAttribIndex = _Shader.GetAttribLocation("in_textureCoord");
             int projectionMatrix = _Shader.GetUniformLocation("projectionMatrix");
 
             _Context.DrawBuffer(Ratchet.Drawing.OpenGL.glContext.DrawBufferMode.GL_BACK);
@@ -170,7 +169,7 @@ void main(void)
             _VertexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ARRAY_BUFFER);
             _IndexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ELEMENT_ARRAY_BUFFER);
             _Context.EnableVertexAttribArray(positionAttribIndex);
-            _Context.VertexAttribPointer(0, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(0));
+            _Context.VertexAttribPointer(positionAttribIndex, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 6 * sizeof(float), new IntPtr(0));
 
             _Context.DrawElements(Ratchet.Drawing.OpenGL.glContext.PrimitivesType.GL_TRIANGLES, 36, Ratchet.Drawing.OpenGL.glContext.IndiceType.GL_UNSIGNED_INT);
             _Context.Flush();

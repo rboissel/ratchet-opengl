@@ -124,10 +124,10 @@ void main(void)
             _VertexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ARRAY_BUFFER);
             _IndexBuffer.BindBuffer(Ratchet.Drawing.OpenGL.glBuffer.BindTarget.GL_ELEMENT_ARRAY_BUFFER);
             _Context.EnableVertexAttribArray(positionAttribIndex);
-            _Context.VertexAttribPointer(0, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 8 * sizeof(float), new IntPtr(0));
+            _Context.VertexAttribPointer(positionAttribIndex, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 8 * sizeof(float), new IntPtr(0));
 
             _Context.EnableVertexAttribArray(colorAttribIndex);
-            _Context.VertexAttribPointer(1, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 8 * sizeof(float), new IntPtr(4 * sizeof(float)));
+            _Context.VertexAttribPointer(colorAttribIndex, 4, Ratchet.Drawing.OpenGL.glContext.VertexAttributeType.GL_FLOAT, false, 8 * sizeof(float), new IntPtr(4 * sizeof(float)));
 
             _Context.DrawElements(Ratchet.Drawing.OpenGL.glContext.PrimitivesType.GL_TRIANGLES, 3, Ratchet.Drawing.OpenGL.glContext.IndiceType.GL_UNSIGNED_INT);
             _Context.SwapBuffers();
