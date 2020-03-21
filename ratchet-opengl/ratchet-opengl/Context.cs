@@ -320,7 +320,9 @@ namespace Ratchet.Drawing.OpenGL
         public void Flush()
         {
             _glFlushFunc();
+#if !NET_STANDARD_13
             CheckForPendingDelete();
+#endif
         }
 
         public void Viewport(int x, int y, int width, int height)
@@ -461,6 +463,7 @@ namespace Ratchet.Drawing.OpenGL
             _glDepthFunc((int)func);
         }
 
+#if !NET_STANDARD_13
         void CheckForPendingDelete()
         {
             lock (this)
@@ -500,21 +503,26 @@ namespace Ratchet.Drawing.OpenGL
                 }
             }
         }
+#endif
 
         public void MakeCurrent()
         {
             lock (this)
             {
                 if (_WGLContext != null) { _WGLContext.MakeCurrent(); }
+#if !NET_STANDARD_13
                 _CurrentThreadId = Thread.CurrentThread.ManagedThreadId;
                 CheckForPendingDelete();
+#endif
             }
         }
 
         public void SwapBuffers()
         {
             if (_WGLContext != null) { _WGLContext.SwapBuffers(); }
+#if !NET_STANDARD_13
             CheckForPendingDelete();
+#endif
         }
 
         public glTexture GenTexture()
@@ -531,6 +539,9 @@ namespace Ratchet.Drawing.OpenGL
             lock (this)
             {
 
+#if NET_STANDARD_13
+                _glDeleteTextures(1, &textureHandle);
+#else
                 if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
                 {
                     _glDeleteTextures(1, &textureHandle);
@@ -541,6 +552,7 @@ namespace Ratchet.Drawing.OpenGL
                     _PendingTextureDelete[_PendingTextureDeleteCount] = textureHandle;
                     _PendingTextureDeleteCount++;
                 }
+#endif
             }
         }
 
@@ -680,6 +692,9 @@ namespace Ratchet.Drawing.OpenGL
 
             lock (this)
             {
+#if NET_STANDARD_13
+                 _glDeleteBuffers(1, &bufferHandle);
+#else
                 if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
                 {
                     _glDeleteBuffers(1, &bufferHandle);
@@ -690,6 +705,7 @@ namespace Ratchet.Drawing.OpenGL
                     _PendingBufferDelete[_PendingBufferDeleteCount] = bufferHandle;
                     _PendingBufferDeleteCount++;
                 }
+#endif
             }
         }
 
@@ -742,7 +758,9 @@ namespace Ratchet.Drawing.OpenGL
 
             lock (this)
             {
-
+#if NET_STANDARD_13
+                _glDeleteShader(shaderHandle);
+#else
                 if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
                 {
                     _glDeleteShader(shaderHandle);
@@ -753,6 +771,7 @@ namespace Ratchet.Drawing.OpenGL
                     _PendingShaderDelete[_PendingShaderDeleteCount] = shaderHandle;
                     _PendingShaderDeleteCount++;
                 }
+#endif
             }
         }
 
@@ -824,7 +843,9 @@ namespace Ratchet.Drawing.OpenGL
 
             lock (this)
             {
-
+#if NET_STANDARD_13
+                _glDeleteProgram(programHandle);
+#else
                 if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
                 {
                     _glDeleteProgram(programHandle);
@@ -835,6 +856,7 @@ namespace Ratchet.Drawing.OpenGL
                     _PendingProgramDelete[_PendingProgramDeleteCount] = programHandle;
                     _PendingProgramDeleteCount++;
                 }
+#endif
             }
         }
 
@@ -1080,6 +1102,9 @@ namespace Ratchet.Drawing.OpenGL
 
             lock (this)
             {
+#if NET_STANDARD_13
+                _glDeleteFramebuffers(1, &framebufferHandle);
+#else
                 if (_CurrentThreadId == Thread.CurrentThread.ManagedThreadId)
                 {
                     _glDeleteFramebuffers(1, &framebufferHandle);
@@ -1090,6 +1115,7 @@ namespace Ratchet.Drawing.OpenGL
                     _PendingFramebufferDelete[_PendingFramebufferDeleteCount] = framebufferHandle;
                     _PendingFramebufferDeleteCount++;
                 }
+#endif
             }
         }
 

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <RootNamespace>ratchet_opengl_netstandard13</RootNamespace>
+    <AssemblyName>ratchet-opengl</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <OutputPath>..\..\bin\Release\ratchet-opengl\lib\</OutputPath>
+    <DocumentationFile>..\..\bin\Release\ratchet-opengl\lib\netstandard1.3\ratchet-opengl.xml</DocumentationFile>
+    <DefineConstants>NET_STANDARD_13</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\bin\Debug\ratchet-opengl\lib\</OutputPath>
+    <DefineConstants>TRACE;NET_STANDARD_13</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\ratchet-opengl\Buffer.cs" Link="Buffer.cs" />
+    <Compile Include="..\..\ratchet-opengl\Context.cs" Link="Context.cs" />
+    <Compile Include="..\..\ratchet-opengl\Framebuffer.cs" Link="Framebuffer.cs" />
+    <Compile Include="..\..\ratchet-opengl\Program.cs" Link="Program.cs" />
+    <Compile Include="..\..\ratchet-opengl\Shader.cs" Link="Shader.cs" />
+    <Compile Include="..\..\ratchet-opengl\Texture.cs" Link="Texture.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ratchet.Drawing.OpenGL.WGL" Version="1.0.11" />
+  </ItemGroup>
+
+</Project>

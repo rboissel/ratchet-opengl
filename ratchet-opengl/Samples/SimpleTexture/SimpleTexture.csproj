@@ -34,8 +34,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ratchet-wgl">
-      <HintPath>..\..\packages\Ratchet.Drawing.OpenGL.WGL.1.0.9.0\lib\net45\ratchet-wgl.dll</HintPath>
+    <Reference Include="ratchet-wgl, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Ratchet.Drawing.OpenGL.WGL.1.0.11.0\lib\net46\ratchet-wgl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
